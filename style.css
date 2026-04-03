@@ -1,28 +1,176 @@
+/* Full-width input for amount */
+.input-full {
+    width: 100%;
+    box-sizing: border-box;
+    font-size: 1.15rem;
+    padding: 0.7em 1em;
+    border-radius: var(--radius-md, 12px);
+    border: 1.5px solid var(--color-border, #f2e7de);
+    background: var(--color-bg-card, #fff8f3);
+    color: var(--color-text, #3d2c1e);
+    transition: border 0.18s, box-shadow 0.18s;
+}
+.input-full:focus {
+    outline: none;
+    border-color: var(--color-accent, #dd5013);
+    box-shadow: 0 0 0 2px rgba(221,80,19,0.10);
+}
+
+/* Themed select dropdown */
+.select-theme {
+    width: 100%;
+    min-width: 0;
+    font-size: 1.08rem;
+    padding: 0.6em 1em;
+    border-radius: var(--radius-md, 12px);
+    border: 1.5px solid var(--color-border, #f2e7de);
+    background: var(--color-bg-card, #fff8f3);
+    color: var(--color-text, #3d2c1e);
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    box-shadow: none;
+    transition: border 0.18s, box-shadow 0.18s;
+}
+.select-theme:focus {
+    outline: none;
+    border-color: var(--color-accent, #dd5013);
+    box-shadow: 0 0 0 2px rgba(221,80,19,0.10);
+}
+.select-theme option {
+    background: #fff8f3;
+    color: #3d2c1e;
+}
+/* Mobile/iPhone Optimizations */
+@media (max-width: 600px) {
+    .container {
+        padding: 0.5rem 0.5rem 1.2rem 0.5rem;
+        max-width: 100vw;
+        min-width: 0;
+    }
+    h1 {
+        font-size: 1.25rem;
+        margin-bottom: 0.7rem;
+    }
+    .card {
+        padding: 1rem 0.7rem 1.1rem 0.7rem;
+        border-radius: 14px;
+        margin-bottom: 1.1rem;
+    }
+    .input-group, .toggle-group {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+    }
+    input[type="text"], select {
+        font-size: 1.1rem;
+        min-height: 44px;
+        border-radius: 10px;
+        padding: 0.6em 0.8em;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    .btn-primary {
+        min-width: 44px;
+        min-height: 44px;
+        font-size: 1.05rem;
+        border-radius: 10px;
+        padding: 0.7em 1.1em;
+    }
+    .toggle-option span {
+        font-size: 1.05rem;
+    }
+    .recommendation-card {
+        font-size: 0.98rem;
+        padding: 1rem 0.8rem;
+        border-radius: 12px;
+    }
+    .footer-note {
+        font-size: 0.93rem;
+        padding-bottom: 0.7rem;
+    }
+    table#transactionTable th, table#transactionTable td {
+        font-size: 0.97rem;
+        padding: 0.35em 0.5em;
+    }
+}
+/* Recommendation Card Styles */
+.recommendation-card {
+    display: none;
+    margin-bottom: 1.5rem;
+    padding: 1.25rem 1.5rem;
+    border-radius: var(--radius-lg, 18px);
+    background: var(--color-bg-card, #fff8f3);
+    box-shadow: 0 2px 12px rgba(221, 80, 19, 0.07);
+    border: 1px solid var(--color-border, #f2e7de);
+    color: var(--color-text, #3d2c1e);
+    font-size: 1rem;
+    line-height: 1.6;
+    transition: box-shadow 0.2s;
+}
+.recommendation-card .rec-title {
+    font-weight: 600;
+    font-size: 1.08rem;
+    margin-bottom: 0.25rem;
+    color: var(--color-accent, #dd5013);
+}
+.recommendation-card .rec-card {
+    font-weight: 500;
+    font-size: 1.1rem;
+    margin-bottom: 0.15rem;
+}
+.recommendation-card .rec-miles {
+    margin-bottom: 0.15rem;
+}
+.recommendation-card .rec-miles span {
+    font-weight: 600;
+    color: var(--color-accent-2, #b85c1e);
+}
+.recommendation-card .rec-breakdown {
+    font-size: 0.97rem;
+    color: var(--color-text-2, #7c5c3a);
+    margin-bottom: 0.1rem;
+    display: flex;
+    gap: 1.5em;
+}
+.recommendation-card .rec-rule {
+    font-size: 0.93rem;
+    color: var(--color-text-3, #a08a7a);
+}
 /* ==========================================================================
    BASE + THEME TOKENS (UX-driven design system)
    ========================================================================== */
 :root {
-    --radius-sm: 10px;
-    --radius-md: 14px;
-    --radius-lg: 18px;
+    /* Radii */
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 14px;
 
-    --color-bg-1: #0f0c29;
-    --color-bg-2: #302b63;
-    --color-bg-3: #24243e;
+    /* Spacing */
+    --gap-xs: 8px;
+    --gap-sm: 12px;
+    --gap-md: 18px;
+    --gap-lg: 24px;
 
-    --color-accent: #00fff0;
-    --color-accent-2: #00b3ff;
+    /* Warm neutral background family (avoid pure white) */
+    --color-page-bg: #F7F5F2; /* very light warm */
+    --card-bg: #F5EFE6; /* off-white card tone */
+    --card-border: #E6E2DB; /* subtle border */
 
-    --color-text: #ffffff;
-    --color-text-dim: #c7e8ff;
+    /* Text */
+    --color-text: #202428; /* dark gray for high readability */
+    --color-text-dim: #6B7176; /* muted secondary text */
 
-    --glow-soft: 0 0 12px rgba(0, 255, 240, 0.45);
-    --glow-strong: 0 0 24px rgba(0, 255, 240, 0.65);
+    /* Calm tech-forward accent (summary uses sunset orange) */
+    --color-accent: #dd5013; /* sunset orange */
+    --color-accent-2: #dd5013;
+    --color-black: #000000;
 
-    --card-bg: rgba(255, 255, 255, 0.06);
-    --card-border: rgba(0, 255, 240, 0.22);
+    /* Elevation / shadows (very subtle) */
+    --shadow-soft: 0 6px 18px rgba(31, 34, 38, 0.06);
+    --shadow-subtle: 0 2px 6px rgba(31, 34, 38, 0.04);
 
-    --transition: 0.25s ease;
+    --transition: 240ms cubic-bezier(.2,.9,.2,1);
 }
 
 /* ==========================================================================
@@ -35,16 +183,16 @@
 }
 
 body {
-    font-family: 'Inter', sans-serif;
-    background: linear-gradient(135deg, var(--color-bg-1), var(--color-bg-2), var(--color-bg-3));
+    font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    background-color: var(--color-page-bg);
     min-height: 100vh;
-    padding: 40px 22px;
+    padding: 48px 20px;
     color: var(--color-text);
     -webkit-font-smoothing: antialiased;
 }
 
 .container {
-    max-width: 430px;
+    max-width: 720px;
     margin: 0 auto;
     position: relative;
 }
@@ -57,6 +205,7 @@ h1 {
     font-size: 30px;
     font-weight: 600;
     margin-bottom: 28px;
+    color: var(--color-text);
 }
 
 /* Reset Icon */
@@ -67,15 +216,15 @@ h1 {
     background: none;
     border: none;
     font-size: 18px;
-    color: var(--color-text);
-    padding: 10px;
+    color: var(--color-text-dim);
+    padding: 8px;
     cursor: pointer;
     border-radius: var(--radius-sm);
     transition: var(--transition);
 }
 .reset-icon:hover {
-    color: var(--color-accent);
-    text-shadow: var(--glow-soft);
+    color: var(--color-text);
+    background: rgba(0,0,0,0.03);
 }
 
 /* ==========================================================================
@@ -85,14 +234,14 @@ h1 {
     background: var(--card-bg);
     border: 1px solid var(--card-border);
     border-radius: var(--radius-lg);
-    padding: 22px;
+    padding: 20px;
     margin-bottom: 20px;
-    backdrop-filter: blur(10px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
     transition: var(--transition);
+    box-shadow: var(--shadow-soft);
 }
 .card:hover {
-    transform: translateY(-3px);
+    transform: translateY(-4px);
+    box-shadow: 0 10px 24px rgba(31, 34, 38, 0.08);
 }
 
 /* ==========================================================================
@@ -101,7 +250,8 @@ h1 {
 h2 {
     font-size: 20px;
     font-weight: 600;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
+    color: var(--color-text);
 }
 
 /* ==========================================================================
@@ -109,48 +259,86 @@ h2 {
    ========================================================================== */
 .input-group {
     display: flex;
-    gap: 12px;
+    gap: var(--gap-sm);
     align-items: center;
 }
 
 /* Inputs */
 input {
     flex: 1;
-    padding: 14px 16px;
+    padding: 12px 14px;
     border-radius: var(--radius-md);
     font-size: 16px;
-    background: rgba(255,255,255,0.04);
-    color: var(--color-accent);
-    border: 1px solid rgba(0,255,240,0.28);
+    background: transparent;
+    color: var(--color-text);
+    border: 1px solid var(--card-border);
     transition: var(--transition);
 }
 
 input:focus {
     outline: none;
     border-color: var(--color-accent);
-    box-shadow: var(--glow-soft);
+    box-shadow: 0 6px 18px rgba(104, 112, 161, 0.12);
 }
 
 /* ==========================================================================
    BUTTON STYLING
    ========================================================================== */
 button {
-    padding: 14px 20px;
+    padding: 10px 16px;
     border-radius: var(--radius-md);
     border: none;
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 600;
     cursor: pointer;
-
-    background: linear-gradient(135deg, var(--color-accent), var(--color-accent-2));
-    color: #000;
+    background: linear-gradient(180deg, var(--color-accent), var(--color-accent-2));
+    color: #fff;
     transition: var(--transition);
-
-    box-shadow: 0 0 14px rgba(0, 255, 240, 0.45);
+    box-shadow: var(--shadow-subtle);
 }
 
 button:hover {
-    box-shadow: var(--glow-strong);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(31,34,38,0.08);
+}
+ 
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Primary button (used for Add) */
+.btn-primary {
+    background: var(--color-black);
+    color: #fff;
+    padding: 10px 16px;
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(255,255,255,0.04);
+    box-shadow: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+.btn-primary:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.02);
+}
+
+/* Minimal reset text button in footer */
+.reset-text {
+    background: var(--color-black);
+    border: none;
+    color: #fff;
+    font-size: 13px;
+    padding: 8px 12px;
+    cursor: pointer;
+    border-radius: 8px;
+}
+.reset-text:hover {
+    background: #111111;
+    color: #fff;
 }
 
 /* ==========================================================================
@@ -160,27 +348,21 @@ button:hover {
     display: flex;
     justify-content: center;
     margin-top: 18px;
-
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.15);
+    background: transparent;
+    border: 1px solid var(--card-border);
     border-radius: var(--radius-lg);
     padding: 4px;
-
-    backdrop-filter: blur(6px);
 }
 
 .toggle-option {
     flex: 1;
     text-align: center;
     cursor: pointer;
-
     border-radius: var(--radius-md);
-    padding: 10px 14px;
-
+    padding: 8px 12px;
     font-size: 14px;
-    font-weight: 500;
+    font-weight: 600;
     color: var(--color-text-dim);
-
     transition: var(--transition);
 }
 
@@ -189,12 +371,9 @@ button:hover {
 }
 
 .toggle-option input:checked + span {
-    display: block;
-    background: rgba(0,255,240,0.15);
+    background: #f8eed2; /* dark cream */
     border-radius: var(--radius-md);
-    padding: 10px 14px;
-    color: var(--color-accent);
-    box-shadow: inset 0 0 14px rgba(0,255,240,0.25);
+    color: var(--color-text);
 }
 
 /* ==========================================================================
@@ -203,7 +382,7 @@ button:hover {
 p {
     font-size: 15px;
     margin-bottom: 10px;
-    color: var(--color-text);
+    color: var(--color-text-dim);
 }
 
 span {
@@ -222,20 +401,20 @@ span {
 #transactionTable th {
     padding: 10px 6px;
     text-align: left;
-    color: var(--color-accent-2);
+    color: var(--color-text-dim);
     font-weight: 600;
     font-size: 14px;
 }
 
 #transactionTable td {
     padding: 10px 6px;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
+    border-bottom: 1px solid #ECE7E0;
     color: var(--color-text);
     font-size: 14px;
 }
 
 #transactionTable tr:hover {
-    background: rgba(0, 255, 240, 0.07);
+    background: rgba(31,34,38,0.02);
 }
 
 /* ==========================================================================
@@ -244,7 +423,7 @@ span {
 .footer-note {
     text-align: center;
     font-size: 7px;
-    color: #b3b3b3;
+    color: var(--color-text-dim);
     margin-top: 28px;
     line-height: 1.1;
     opacity: 0.7;
@@ -304,23 +483,24 @@ body {
     -webkit-tap-highlight-color: rgba(0,0,0,0);
 }
 
-/* Stronger contrast on neon for mobile OLED screens */
+/* Neutral button shadow for clean theme */
 button {
-    box-shadow:
-        0 0 12px rgba(0, 255, 240, 0.55),
-        0 0 20px rgba(0, 255, 240, 0.35);
+    box-shadow: none;
 }
 
 /* Toggle full-box selected state smoothing */
 .toggle-option input:checked + span {
-    -webkit-backdrop-filter: blur(12px);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(0,255,240,0.4);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    border: 1px solid var(--card-border);
 }
 
 /* Make tap areas larger */
 .toggle-option span {
-    padding: 12px 20px;
+    display: inline-block;
+    padding: 10px 14px;
+    line-height: 1.2;
+    vertical-align: middle;
 }
 
 /* Improve table readability on small Retina screens */
@@ -375,7 +555,7 @@ button {
 .progress-bar-bg {
     width: 100%;
     height: 8px;
-    background: rgba(255, 255, 255, 0.1);
+    background: #ECE7E0;
     border-radius: 10px;
     overflow: hidden;
     position: relative;
@@ -385,8 +565,8 @@ button {
     height: 100%;
     width: 100%; /* Starts full, draws down */
     background: linear-gradient(90deg, var(--color-accent), var(--color-accent-2));
-    box-shadow: 0 0 10px rgba(0, 255, 240, 0.5);
-    transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1); /* Smooth tech animation */
+    box-shadow: none;
+    transition: width 760ms cubic-bezier(.2,.9,.2,1);
 }
 
 /* Total Miles Highlight */
@@ -406,6 +586,6 @@ button {
 
 .total-miles-display h3 {
     font-size: 32px;
+    font-weight: 700;
     color: var(--color-accent);
-    text-shadow: var(--glow-soft);
 }
