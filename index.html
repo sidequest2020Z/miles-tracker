@@ -1,5 +1,9 @@
 <html lang="en">
 <head>
+    <link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/1067/1067566.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Miles Tracker</title>
@@ -8,60 +12,49 @@
 </head>
 <body>
     <div class="container">
-        <h1>Miles Tracker</h1>
 
-        <!-- Reset button as small top-right icon -->
-        <button id="resetButton" class="reset-icon" title="Reset tracker">&#x21bb;</button>
+        
+
+                <!-- Add Purchase Card with Recommendation and Card Selector -->
 
         <div class="card">
             <h2>Add Purchase</h2>
+            <div id="inlineRecommendation" class="recommendation-card" style="display:none; margin-bottom: 0.7rem;" aria-live="polite"></div>
             <div class="input-group">
-                <input type="text" id="purchaseAmount" placeholder="Enter amount" inputmode="decimal" pattern="[0-9]*" >
-                <button onclick="addPurchase()">Add</button>
-                </div>
-                
-      <div class="toggle-group">
-    <label class="toggle-option">
-        <input type="radio" name="purchaseType" value="contactless" checked>
-        <span>Contactless</span>
-    </label>
-
-    <label class="toggle-option">
-        <input type="radio" name="purchaseType" value="online">
-        <span>Online</span>
-    </label>
-</div>
+                <input type="text" id="purchaseAmount" class="input-full" placeholder="Enter amount" inputmode="decimal" pattern="[0-9]*" autocomplete="off" autocorrect="off" spellcheck="false" style="font-size:1.15rem;" >
+                <button id="addButton" class="btn-primary" aria-label="Add purchase" style="min-width: 44px; min-height: 44px;">
+                    <svg class="add-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span>Add</span>
+                </button>
+            </div>
+            <div class="toggle-group" style="margin-bottom: 0.7rem;">
+                <label class="toggle-option">
+                    <input type="radio" name="purchaseType" value="contactless" checked>
+                    <span>Contactless</span>
+                </label>
+                <label class="toggle-option">
+                    <input type="radio" name="purchaseType" value="online">
+                    <span>Online</span>
+                </label>
+            </div>
+            <!-- Card Selector moved here -->
+                        <div class="input-group" style="margin-bottom: 0;">
+                            <label for="cardSelector" style="font-weight:600; margin-right:10px;">Card:</label>
+                            <select id="cardSelector" class="select-theme"></select>
+                        </div>
         </div>
 
-<div class="card">
-    <h2>Summary</h2>
-    
-<div class="total-miles-display">
-        <p>Total Miles Earned</p>
-        <h3 id="totalMiles">0</h3>
-    </div>
-
-    <div class="progress-section">
-        <div class="progress-labels">
-            <span>Contactless (4 mpd)</span>
-            <span id="remainingContactlessText">$540 left</span>
+        <div class="card" style="margin-bottom: 1.2rem;" >
+            <h2>Summary</h2>
+            <div class="total-miles-display">
+                <p>Total Miles Earned</p>
+                <h3 id="totalMiles">0</h3>
+            </div>
+            <!-- Dynamic progress bars will be rendered here -->
+            <div id="progressBarsContainer"></div>
         </div>
-        <div class="progress-bar-bg">
-            <div id="barContactless" class="progress-fill"></div>
-        </div>
-    </div>
-
-    <div class="progress-section">
-        <div class="progress-labels">
-            <span>Online (4 mpd)</span>
-            <span id="remainingOnlineText">$540 left</span>
-        </div>
-        <div class="progress-bar-bg">
-            <div id="barOnline" class="progress-fill"></div>
-        </div>
-    </div>
-
-</div>
 
 
         <!-- =========================
@@ -87,9 +80,10 @@
     </div> <!-- end of container -->
    
     <footer class="footer-note">
-    <p>Miles Tracker v1.1.1 — Last updated: 18 Dec 2025</p>
-    <p>Last Update: Supports Contacless & Online bucket </p>
-        <p>Next update: Missed Opportunites. </p>
+    <p>tailwind v2.2.0 — Last updated: 3 Apr 2026</p>
+        <div style="margin-top:6px;">
+            <button id="resetButton" class="reset-text" aria-label="Reset tracker">Reset</button>
+        </div>
 </footer>
     <script src="script.js"></script>
 </body>
