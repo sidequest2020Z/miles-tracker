@@ -1,591 +1,384 @@
-/* Full-width input for amount */
-.input-full {
-    width: 100%;
-    box-sizing: border-box;
-    font-size: 1.15rem;
-    padding: 0.7em 1em;
-    border-radius: var(--radius-md, 12px);
-    border: 1.5px solid var(--color-border, #f2e7de);
-    background: var(--color-bg-card, #fff8f3);
-    color: var(--color-text, #3d2c1e);
-    transition: border 0.18s, box-shadow 0.18s;
-}
-.input-full:focus {
-    outline: none;
-    border-color: var(--color-accent, #dd5013);
-    box-shadow: 0 0 0 2px rgba(221,80,19,0.10);
+// ===============================
+// ===============================
+// RECOMMENDATION ENGINE
+// ===============================
+// Returns { cardId, miles, ruleType, ruleLabel, breakdown }
+let userCardOverride = false;
+function getBestCardForSpend(amount, type) {
+    let best = null;
+    cards.forEach(card => {
+        // Find matching rule
+        let ruleIdx = -1;
+        let rule = null;
+        if (card.rules.length === 1 && card.rules[0].type === "shared") {
+            ruleIdx = 0;
+            rule = card.rules[0];
+        } else {
+            ruleIdx = card.rules.findIndex(r => r.type === type);
+            rule = card.rules[ruleIdx];
+        }
+        if (!rule) return;
+        // Calculate used and remaining
+        const state = loadState();
+        let used = getUsedAmountForRule(state, card, rule, ruleIdx);
+        let remaining = Math.max(0, rule.cap - used);
+        let spend = Math.min(remaining, amount);
+        let spendAt0 = amount - spend;
+        // Miles calculation
+        let miles = 0;
+        const baseMpd = card.baseMpd || 0;
+        let breakdown = {};
+        if (card.rounding === "block") {
+            const blocks = Math.floor(spend / card.blockSize);
+            const blocksBase = Math.floor(spendAt0 / card.blockSize);
+            miles += blocks * card.blockSize * rule.mpd;
+            miles += blocksBase * card.blockSize * baseMpd;
+            breakdown = {
+                bonus: blocks * card.blockSize * rule.mpd,
+                base: blocksBase * card.blockSize * baseMpd
+            };
+        } else {
+            miles += spend * rule.mpd;
+            miles += spendAt0 * baseMpd;
+            breakdown = {
+                bonus: spend * rule.mpd,
+                base: spendAt0 * baseMpd
+            };
+        }
+        miles = Math.round(miles * 100) / 100;
+        if (!best || miles > best.miles) {
+            best = {
+                cardId: card.id,
+                miles,
+                ruleType: rule.type,
+                ruleLabel: rule.type === "shared" ? "All Spend" : rule.type[0].toUpperCase() + rule.type.slice(1),
+                breakdown
+            };
+        }
+    });
+    return best;
 }
 
-/* Themed select dropdown */
-.select-theme {
-    width: 100%;
-    min-width: 0;
-    font-size: 1.08rem;
-    padding: 0.6em 1em;
-    border-radius: var(--radius-md, 12px);
-    border: 1.5px solid var(--color-border, #f2e7de);
-    background: var(--color-bg-card, #fff8f3);
-    color: var(--color-text, #3d2c1e);
-    appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    box-shadow: none;
-    transition: border 0.18s, box-shadow 0.18s;
-}
-.select-theme:focus {
-    outline: none;
-    border-color: var(--color-accent, #dd5013);
-    box-shadow: 0 0 0 2px rgba(221,80,19,0.10);
-}
-.select-theme option {
-    background: #fff8f3;
-    color: #3d2c1e;
-}
-/* Mobile/iPhone Optimizations */
-@media (max-width: 600px) {
-    .container {
-        padding: 0.5rem 0.5rem 1.2rem 0.5rem;
-        max-width: 100vw;
-        min-width: 0;
+function renderRecommendation() {
+    const amountRaw = document.getElementById("purchaseAmount").value;
+    const amount = Number(amountRaw);
+    const type = getSelectedPurchaseType();
+    const container = document.getElementById("inlineRecommendation");
+    if (!Number.isFinite(amount) || amount <= 0) {
+        container.style.display = "none";
+        return;
     }
-    h1 {
-        font-size: 1.25rem;
-        margin-bottom: 0.7rem;
+    const rec = getBestCardForSpend(amount, type);
+    if (!rec) {
+        container.style.display = "none";
+        return;
     }
-    .card {
-        padding: 1rem 0.7rem 1.1rem 0.7rem;
-        border-radius: 14px;
-        margin-bottom: 1.1rem;
-    }
-    .input-group, .toggle-group {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 0.5rem;
-    }
-    input[type="text"], select {
-        font-size: 1.1rem;
-        min-height: 44px;
-        border-radius: 10px;
-        padding: 0.6em 0.8em;
-        width: 100%;
-        box-sizing: border-box;
-    }
-    .btn-primary {
-        min-width: 44px;
-        min-height: 44px;
-        font-size: 1.05rem;
-        border-radius: 10px;
-        padding: 0.7em 1.1em;
-    }
-    .toggle-option span {
-        font-size: 1.05rem;
-    }
-    .recommendation-card {
-        font-size: 0.98rem;
-        padding: 1rem 0.8rem;
-        border-radius: 12px;
-    }
-    .footer-note {
-        font-size: 0.93rem;
-        padding-bottom: 0.7rem;
-    }
-    table#transactionTable th, table#transactionTable td {
-        font-size: 0.97rem;
-        padding: 0.35em 0.5em;
+    const card = cards.find(c => c.id === rec.cardId);
+    container.style.display = "block";
+    container.innerHTML = `
+        <div class="rec-title">Best Card for $${amount.toFixed(2)}:</div>
+        <div class="rec-card">${card.name}</div>
+        <div class="rec-miles">Miles: <span>${rec.miles.toLocaleString()}</span></div>
+        <div class="rec-breakdown">
+            <span>Bonus: ${rec.breakdown.bonus.toFixed(2)}</span>
+            <span>Base: ${rec.breakdown.base.toFixed(2)}</span>
+        </div>
+        <div class="rec-rule">Rule: ${rec.ruleLabel}</div>
+    `;
+
+    // Auto-select best card unless user has overridden
+    const cardSelector = document.getElementById("cardSelector");
+    if (!userCardOverride && cardSelector.value !== rec.cardId) {
+        cardSelector.value = rec.cardId;
+        // Update state and re-render summary/transactions only
+        const state = loadState();
+        state.selectedCardId = rec.cardId;
+        saveState(state);
+        renderSummary(state);
+        renderTransactions(state);
     }
 }
-/* Recommendation Card Styles */
-.recommendation-card {
-    display: none;
-    margin-bottom: 1.5rem;
-    padding: 1.25rem 1.5rem;
-    border-radius: var(--radius-lg, 18px);
-    background: var(--color-bg-card, #fff8f3);
-    box-shadow: 0 2px 12px rgba(221, 80, 19, 0.07);
-    border: 1px solid var(--color-border, #f2e7de);
-    color: var(--color-text, #3d2c1e);
-    font-size: 1rem;
-    line-height: 1.6;
-    transition: box-shadow 0.2s;
-}
-.recommendation-card .rec-title {
-    font-weight: 600;
-    font-size: 1.08rem;
-    margin-bottom: 0.25rem;
-    color: var(--color-accent, #dd5013);
-}
-.recommendation-card .rec-card {
-    font-weight: 500;
-    font-size: 1.1rem;
-    margin-bottom: 0.15rem;
-}
-.recommendation-card .rec-miles {
-    margin-bottom: 0.15rem;
-}
-.recommendation-card .rec-miles span {
-    font-weight: 600;
-    color: var(--color-accent-2, #b85c1e);
-}
-.recommendation-card .rec-breakdown {
-    font-size: 0.97rem;
-    color: var(--color-text-2, #7c5c3a);
-    margin-bottom: 0.1rem;
-    display: flex;
-    gap: 1.5em;
-}
-.recommendation-card .rec-rule {
-    font-size: 0.93rem;
-    color: var(--color-text-3, #a08a7a);
-}
-/* ==========================================================================
-   BASE + THEME TOKENS (UX-driven design system)
-   ========================================================================== */
-:root {
-    /* Radii */
-    --radius-sm: 8px;
-    --radius-md: 12px;
-    --radius-lg: 14px;
+// CARD CONFIGURATION SYSTEM
+// ===============================
+const cards = [
+    {
+        id: "uob_ppv",
+        name: "UOB PPV",
+        baseMpd: 0.4,
+        rounding: "block",
+        blockSize: 5,
+        rules: [
+            { type: "contactless", mpd: 4, cap: 540 },
+            { type: "online", mpd: 4, cap: 540 }
+        ]
+    },
+    {
+        id: "hsbc_revolution",
+        name: "HSBC Revolution",
+        baseMpd: 0.33,
+        rules: [
+            { type: "shared", mpd: 3.33, cap: 1500, appliesTo: ["contactless", "online"] }
+        ]
+    }
+];
 
-    /* Spacing */
-    --gap-xs: 8px;
-    --gap-sm: 12px;
-    --gap-md: 18px;
-    --gap-lg: 24px;
-
-    /* Warm neutral background family (avoid pure white) */
-    --color-page-bg: #F7F5F2; /* very light warm */
-    --card-bg: #F5EFE6; /* off-white card tone */
-    --card-border: #E6E2DB; /* subtle border */
-
-    /* Text */
-    --color-text: #202428; /* dark gray for high readability */
-    --color-text-dim: #6B7176; /* muted secondary text */
-
-    /* Calm tech-forward accent (summary uses sunset orange) */
-    --color-accent: #dd5013; /* sunset orange */
-    --color-accent-2: #dd5013;
-    --color-black: #000000;
-
-    /* Elevation / shadows (very subtle) */
-    --shadow-soft: 0 6px 18px rgba(31, 34, 38, 0.06);
-    --shadow-subtle: 0 2px 6px rgba(31, 34, 38, 0.04);
-
-    --transition: 240ms cubic-bezier(.2,.9,.2,1);
+// ===============================
+// STATE MANAGEMENT
+// ===============================
+function getDefaultState() {
+    return {
+        selectedCardId: "uob_ppv",
+        transactions: []
+    };
 }
 
-/* ==========================================================================
-   BASE LAYOUT
-   ========================================================================== */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+function loadState() {
+    const state = JSON.parse(localStorage.getItem("milesTrackerState"));
+    if (!state) return getDefaultState();
+    if (!state.selectedCardId) state.selectedCardId = "uob_ppv";
+    if (!state.transactions) state.transactions = [];
+    return state;
 }
 
-body {
-    font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-    background-color: var(--color-page-bg);
-    min-height: 100vh;
-    padding: 48px 20px;
-    color: var(--color-text);
-    -webkit-font-smoothing: antialiased;
+function saveState(state) {
+    localStorage.setItem("milesTrackerState", JSON.stringify(state));
 }
 
-.container {
-    max-width: 720px;
-    margin: 0 auto;
-    position: relative;
+// ===============================
+// RENDER FUNCTIONS
+// ===============================
+function renderCardSelector(state) {
+    const selector = document.getElementById("cardSelector");
+    selector.innerHTML = "";
+    cards.forEach(card => {
+        const opt = document.createElement("option");
+        opt.value = card.id;
+        opt.textContent = card.name;
+        if (card.id === state.selectedCardId) opt.selected = true;
+        selector.appendChild(opt);
+    });
+    selector.onchange = () => {
+        userCardOverride = true;
+        state.selectedCardId = selector.value;
+        saveState(state);
+        renderAll(state);
+    };
 }
 
-/* ==========================================================================
-   HEADER
-   ========================================================================== */
-h1 {
-    text-align: center;
-    font-size: 30px;
-    font-weight: 600;
-    margin-bottom: 28px;
-    color: var(--color-text);
+function renderSummary(state) {
+    // Total miles
+    const totalMiles = state.transactions
+        .filter(tx => tx.cardId === state.selectedCardId)
+        .reduce((sum, tx) => sum + tx.miles, 0);
+    document.getElementById("totalMiles").textContent = Math.floor(totalMiles).toLocaleString();
+
+    // Progress bars
+    renderProgressBars(state);
 }
 
-/* Reset Icon */
-.reset-icon {
-    position: absolute;
-    top: 6px;
-    right: 6px;
-    background: none;
-    border: none;
-    font-size: 18px;
-    color: var(--color-text-dim);
-    padding: 8px;
-    cursor: pointer;
-    border-radius: var(--radius-sm);
-    transition: var(--transition);
-}
-.reset-icon:hover {
-    color: var(--color-text);
-    background: rgba(0,0,0,0.03);
+function renderProgressBars(state) {
+    const card = cards.find(c => c.id === state.selectedCardId);
+    const container = document.getElementById("progressBarsContainer");
+    container.innerHTML = "";
+
+    card.rules.forEach((rule, idx) => {
+        let label = "";
+        if (rule.type === "contactless") label = `Contactless (${rule.mpd} mpd)`;
+        else if (rule.type === "online") label = `Online (${rule.mpd} mpd)`;
+        else if (rule.type === "shared") label = `All Spend (${rule.mpd} mpd)`;
+
+        // Calculate remaining
+        const used = getUsedAmountForRule(state, card, rule, idx);
+        const remaining = Math.max(0, rule.cap - used);
+        const pct = (remaining / rule.cap) * 100;
+
+        // DOM
+        const section = document.createElement("div");
+        section.className = "progress-section";
+        section.innerHTML = `
+            <div class="progress-labels">
+                <span>${label}</span>
+                <span id="remainingText_${idx}">$${remaining.toFixed(0)} left</span>
+            </div>
+            <div class="progress-bar-bg">
+                <div id="bar_${idx}" class="progress-fill" style="width:${pct}%;"></div>
+            </div>
+        `;
+        container.appendChild(section);
+
+        // Alert color if low
+        const bar = section.querySelector(`#bar_${idx}`);
+        if (pct < 15) {
+            bar.style.background = "#ff4d4d";
+            bar.style.boxShadow = "0 6px 12px rgba(255, 77, 77, 0.12)";
+        } else {
+            bar.style.background = "linear-gradient(90deg, var(--color-accent), var(--color-accent-2))";
+            bar.style.boxShadow = "0 6px 12px rgba(221, 80, 19, 0.10)";
+        }
+    });
 }
 
-/* ==========================================================================
-   CARD (lighter, cleaner, more iOS)
-   ========================================================================== */
-.card {
-    background: var(--card-bg);
-    border: 1px solid var(--card-border);
-    border-radius: var(--radius-lg);
-    padding: 20px;
-    margin-bottom: 20px;
-    transition: var(--transition);
-    box-shadow: var(--shadow-soft);
-}
-.card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 10px 24px rgba(31, 34, 38, 0.08);
-}
-
-/* ==========================================================================
-   CARD HEADINGS
-   ========================================================================== */
-h2 {
-    font-size: 20px;
-    font-weight: 600;
-    margin-bottom: 12px;
-    color: var(--color-text);
-}
-
-/* ==========================================================================
-   INPUT GROUP
-   ========================================================================== */
-.input-group {
-    display: flex;
-    gap: var(--gap-sm);
-    align-items: center;
-}
-
-/* Inputs */
-input {
-    flex: 1;
-    padding: 12px 14px;
-    border-radius: var(--radius-md);
-    font-size: 16px;
-    background: transparent;
-    color: var(--color-text);
-    border: 1px solid var(--card-border);
-    transition: var(--transition);
-}
-
-input:focus {
-    outline: none;
-    border-color: var(--color-accent);
-    box-shadow: 0 6px 18px rgba(104, 112, 161, 0.12);
-}
-
-/* ==========================================================================
-   BUTTON STYLING
-   ========================================================================== */
-button {
-    padding: 10px 16px;
-    border-radius: var(--radius-md);
-    border: none;
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    background: linear-gradient(180deg, var(--color-accent), var(--color-accent-2));
-    color: #fff;
-    transition: var(--transition);
-    box-shadow: var(--shadow-subtle);
-}
-
-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(31,34,38,0.08);
-}
- 
-button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
-}
-
-/* Primary button (used for Add) */
-.btn-primary {
-    background: var(--color-black);
-    color: #fff;
-    padding: 10px 16px;
-    border-radius: var(--radius-md);
-    border: 1px solid rgba(255,255,255,0.04);
-    box-shadow: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-}
-.btn-primary:hover {
-    transform: translateY(-2px);
-    filter: brightness(1.02);
-}
-
-/* Minimal reset text button in footer */
-.reset-text {
-    background: var(--color-black);
-    border: none;
-    color: #fff;
-    font-size: 13px;
-    padding: 8px 12px;
-    cursor: pointer;
-    border-radius: 8px;
-}
-.reset-text:hover {
-    background: #111111;
-    color: #fff;
-}
-
-/* ==========================================================================
-   IMPROVED MODERN TOGGLE (tech but minimal)
-   ========================================================================== */
-.toggle-group {
-    display: flex;
-    justify-content: center;
-    margin-top: 18px;
-    background: transparent;
-    border: 1px solid var(--card-border);
-    border-radius: var(--radius-lg);
-    padding: 4px;
-}
-
-.toggle-option {
-    flex: 1;
-    text-align: center;
-    cursor: pointer;
-    border-radius: var(--radius-md);
-    padding: 8px 12px;
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--color-text-dim);
-    transition: var(--transition);
-}
-
-.toggle-option input {
-    display: none;
-}
-
-.toggle-option input:checked + span {
-    background: #f8eed2; /* dark cream */
-    border-radius: var(--radius-md);
-    color: var(--color-text);
-}
-
-/* ==========================================================================
-   PARAGRAPHS + SUMMARY
-   ========================================================================== */
-p {
-    font-size: 15px;
-    margin-bottom: 10px;
-    color: var(--color-text-dim);
-}
-
-span {
-    font-weight: 600;
-}
-
-/* ==========================================================================
-   TABLE STYLING
-   ========================================================================== */
-#transactionTable {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 8px;
-}
-
-#transactionTable th {
-    padding: 10px 6px;
-    text-align: left;
-    color: var(--color-text-dim);
-    font-weight: 600;
-    font-size: 14px;
-}
-
-#transactionTable td {
-    padding: 10px 6px;
-    border-bottom: 1px solid #ECE7E0;
-    color: var(--color-text);
-    font-size: 14px;
-}
-
-#transactionTable tr:hover {
-    background: rgba(31,34,38,0.02);
-}
-
-/* ==========================================================================
-   FOOTER NOTE
-   ========================================================================== */
-.footer-note {
-    text-align: center;
-    font-size: 7px;
-    color: var(--color-text-dim);
-    margin-top: 28px;
-    line-height: 1.1;
-    opacity: 0.7;
-}
-
-/* ==========================================================================
-   RESPONSIVE
-   ========================================================================== */
-@media (max-width: 480px) {
-    h1 { font-size: 26px; }
-    h2 { font-size: 18px; }
-    button { font-size: 15px; }
-}
-
-
-/* ==========================================================================
-   iPhone / Mobile Safari Optimization Layer
-   ========================================================================== */
-
-/* Respect iPhone notch safe areas */
-body {
-    padding-top: calc(40px + env(safe-area-inset-top));
-    padding-bottom: calc(20px + env(safe-area-inset-bottom));
-}
-
-/* Fix iOS Safari font-weight rendering */
-body, input, button {
-    -webkit-font-smoothing: antialiased;
-    text-rendering: optimizeLegibility;
-}
-
-/* Improve scroll performance on iOS */
-html, body {
-    height: 100%;
-    overflow-x: hidden;
-    -webkit-overflow-scrolling: touch;
-}
-
-/* Prevent zoom on input focus (iOS 300% zoom bug) */
-input {
-    font-size: 16px !important;
-}
-
-/* Improve tap responsiveness (remove 300ms delay on older iOS) */
-button, input, .toggle-option {
-    touch-action: manipulation;
-}
-
-/* Improve gradient rendering and avoid banding on iOS */
-body {
-    background-attachment: fixed;
-    background-size: cover;
-}
-
-/* Prevent highlighting elements during taps (iOS blue highlight) */
-* {
-    -webkit-tap-highlight-color: rgba(0,0,0,0);
-}
-
-/* Neutral button shadow for clean theme */
-button {
-    box-shadow: none;
-}
-
-/* Toggle full-box selected state smoothing */
-.toggle-option input:checked + span {
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-    border: 1px solid var(--card-border);
-}
-
-/* Make tap areas larger */
-.toggle-option span {
-    display: inline-block;
-    padding: 10px 14px;
-    line-height: 1.2;
-    vertical-align: middle;
-}
-
-/* Improve table readability on small Retina screens */
-#transactionTable td, #transactionTable th {
-    padding: 12px 8px;
-    font-size: 15px;
-}
-
-/* Prevent layout jank on rotation */
-@media (orientation: landscape) {
-    body {
-        padding-top: 20px;
-        padding-bottom: 20px;
+// Helper: get used amount for a rule (handles shared/separate pools)
+function getUsedAmountForRule(state, card, rule, ruleIdx) {
+    if (rule.type === "shared") {
+        // Sum all spend for this card
+        return state.transactions
+            .filter(tx => tx.cardId === card.id)
+            .reduce((sum, tx) => sum + tx.amount, 0);
+    } else {
+        // Only sum spend for this card and this type
+        return state.transactions
+            .filter(tx => tx.cardId === card.id && tx.type === rule.type)
+            .reduce((sum, tx) => sum + tx.amount, 0);
     }
 }
 
-/* Fix iOS Safari 1px border misalignment due to subpixel rendering */
-.card,
-.toggle-group,
-input,
-button {
-    border-width: 0.7px;
+function renderTransactions(state) {
+    const tableBody = document.querySelector("#transactionTable tbody");
+    tableBody.innerHTML = "";
+    // Show only transactions for selected card
+    const txs = state.transactions.filter(tx => tx.cardId === state.selectedCardId).slice().reverse();
+    txs.forEach(tx => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+            <td>${formatTransactionDate(tx.datetime)}</td>
+            <td>${tx.type[0].toUpperCase() + tx.type.slice(1)}</td>
+            <td>${tx.amount.toFixed(2)}</td>
+            <td>${tx.miles.toFixed(2)}</td>
+        `;
+        tableBody.appendChild(row);
+    });
 }
 
-/* Smooth animations tailored for iOS GPU */
-.card,
-button,
-.toggle-option span {
-    will-change: transform, box-shadow, background;
+// ===============================
+// ADD PURCHASE LOGIC
+// ===============================
+function addPurchase() {
+    const state = loadState();
+    const card = cards.find(c => c.id === state.selectedCardId);
+    const raw = document.getElementById("purchaseAmount").value;
+    const purchaseAmount = Number(raw);
+    const type = getSelectedPurchaseType();
+
+    if (!Number.isFinite(purchaseAmount) || purchaseAmount <= 0) {
+        alert("Please enter a valid amount greater than 0.");
+        return;
+    }
+
+    // Find matching rule
+    let ruleIdx = -1;
+    let rule = null;
+    if (card.rules.length === 1 && card.rules[0].type === "shared") {
+        ruleIdx = 0;
+        rule = card.rules[0];
+    } else {
+        ruleIdx = card.rules.findIndex(r => r.type === type);
+        rule = card.rules[ruleIdx];
+    }
+
+    // Calculate used and remaining
+    let used = getUsedAmountForRule(state, card, rule, ruleIdx);
+    let remaining = Math.max(0, rule.cap - used);
+    let spend = Math.min(remaining, purchaseAmount);
+    let spendAt0 = purchaseAmount - spend;
+
+    // User warning for exceeding cap
+    if (purchaseAmount > remaining) {
+        alert(`Only $${remaining.toFixed(0)} eligible for bonus miles`);
+    }
+
+    // Config-driven miles calculation
+    let miles = 0;
+    const baseMpd = card.baseMpd || 0;
+    if (card.rounding === "block") {
+        const blocks = Math.floor(spend / card.blockSize);
+        miles += blocks * card.blockSize * rule.mpd;
+        const blocksBase = Math.floor(spendAt0 / card.blockSize);
+        miles += blocksBase * card.blockSize * baseMpd;
+    } else {
+        miles += spend * rule.mpd;
+        miles += spendAt0 * baseMpd;
+    }
+    // Floating point safety
+    miles = Math.round(miles * 100) / 100;
+
+    // Store transaction
+    state.transactions.push({
+        datetime: new Date().toISOString(),
+        cardId: card.id,
+        type,
+        amount: purchaseAmount,
+        miles
+    });
+
+    saveState(state);
+    renderAll(state);
+
+    // Reset input
+    document.getElementById("purchaseAmount").value = "";
 }
 
-/* Disable double-tap zoom on interactive elements */
-button {
-    touch-action: manipulation;
+// ===============================
+// RESET FUNCTIONALITY
+// ===============================
+function resetTracker() {
+    if (!confirm("Reset all data?")) return;
+    localStorage.removeItem("milesTrackerState");
+    renderAll(getDefaultState());
 }
 
-
-/* Progress Bar UX */
-.progress-section {
-    margin-bottom: 24px;
+// ===============================
+// UTILS
+// ===============================
+function getSelectedPurchaseType() {
+    return document.querySelector('input[name="purchaseType"]:checked').value;
 }
 
-.progress-labels {
-    display: flex;
-    justify-content: space-between;
-    font-size: 13px;
-    margin-bottom: 8px;
-    color: var(--color-text-dim);
-    font-weight: 500;
+function formatTransactionDate(datetimeString) {
+    const date = new Date(datetimeString);
+    const datePart = date.toLocaleDateString("en-SG", {
+        day: "2-digit",
+        month: "short"
+    });
+    let timePart = date.toLocaleTimeString("en-SG", {
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true
+    });
+    timePart = timePart.replace(/ /, "\u00A0").replace(/am|pm/i, match => match.toUpperCase());
+    return `${datePart} • ${timePart}`;
 }
 
-.progress-bar-bg {
-    width: 100%;
-    height: 8px;
-    background: #ECE7E0;
-    border-radius: 10px;
-    overflow: hidden;
-    position: relative;
+// ===============================
+// MAIN RENDER
+// ===============================
+function renderAll(state) {
+    renderCardSelector(state);
+    renderSummary(state);
+    renderTransactions(state);
+    renderRecommendation();
 }
 
-.progress-fill {
-    height: 100%;
-    width: 100%; /* Starts full, draws down */
-    background: linear-gradient(90deg, var(--color-accent), var(--color-accent-2));
-    box-shadow: none;
-    transition: width 760ms cubic-bezier(.2,.9,.2,1);
-}
-
-/* Total Miles Highlight */
-.total-miles-display {
-    text-align: center;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    padding-top: 15px;
-    margin-top: 10px;
-}
-
-.total-miles-display p {
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: var(--color-text-dim);
-}
-
-.total-miles-display h3 {
-    font-size: 32px;
-    font-weight: 700;
-    color: var(--color-accent);
-}
+// ===============================
+// INIT
+// ===============================
+window.onload = () => {
+    const state = loadState();
+    renderAll(state);
+    document.getElementById("resetButton").onclick = resetTracker;
+    document.getElementById("addButton").onclick = addPurchase;
+    // Live recommendation updates
+    // iPhone/mobile: focus input on load, larger touch targets
+    const purchaseInput = document.getElementById("purchaseAmount");
+    setTimeout(() => { purchaseInput.blur(); }, 100); // Prevent auto-zoom on load
+    purchaseInput.addEventListener("focus", function() {
+        this.select();
+    });
+    purchaseInput.addEventListener("input", renderRecommendation);
+    Array.from(document.querySelectorAll('input[name="purchaseType"]')).forEach(el => {
+        el.addEventListener("change", function() {
+            userCardOverride = false;
+            renderRecommendation();
+        });
+    });
+};
