@@ -239,15 +239,192 @@ function renderTransactions(state) {
     // Show only transactions for selected card
     const txs = state.transactions.filter(tx => tx.cardId === state.selectedCardId).slice().reverse();
     txs.forEach(tx => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-            <td>${formatTransactionDate(tx.datetime)}</td>
-            <td>${tx.type[0].toUpperCase() + tx.type.slice(1)}</td>
-            <td>${tx.amount.toFixed(2)}</td>
-            <td>${tx.miles.toFixed(2)}</td>
+        const wrap = document.createElement("div");
+        wrap.className = "tx-row-wrap";
+        
+        const row = document.createElement("div");
+        row.className = "tx-row";
+        row.dataset.datetime = tx.datetime;
+        
+        const cellDate = document.createElement("div");
+        cellDate.className = "tx-row-cell date-cell";
+        const { datePart, timePart } = formatTransactionDateSplit(tx.datetime);
+        const dateValue = document.createElement("div");
+        dateValue.className = "date-value";
+        dateValue.textContent = datePart;
+        const timeValue = document.createElement("div");
+        timeValue.className = "time-value";
+        timeValue.textContent = timePart;
+        cellDate.appendChild(dateValue);
+        cellDate.appendChild(timeValue);
+        
+        const cellType = document.createElement("div");
+        cellType.className = "tx-row-cell";
+        cellType.textContent = tx.type[0].toUpperCase() + tx.type.slice(1);
+        
+        const cellAmount = document.createElement("div");
+        cellAmount.className = "tx-row-cell amount";
+        cellAmount.textContent = tx.amount.toFixed(2);
+        
+        const cellMiles = document.createElement("div");
+        cellMiles.className = "tx-row-cell miles";
+        cellMiles.textContent = tx.miles.toFixed(2);
+        
+        row.appendChild(cellDate);
+        row.appendChild(cellType);
+        row.appendChild(cellAmount);
+        row.appendChild(cellMiles);
+        
+        const deleteBg = document.createElement("div");
+        deleteBg.className = "delete-bg";
+        deleteBg.innerHTML = `
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M19 6.4L18.3 19c-.1 1.1-1 2-2.1 2H8.8c-1.1 0-2-1-2.1-2L5 6.4M10 11v6M14 11v6M15 6V5c0-.6-.4-1-1-1h-4c-.6 0-1 .4-1 1v1M3 6h18" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
         `;
-        tableBody.appendChild(row);
+        deleteBg.addEventListener("click", () => handleDeleteTransaction(tx, state));
+        
+        wrap.appendChild(row);
+        wrap.appendChild(deleteBg);
+        tableBody.appendChild(wrap);
+        
+        // Attach swipe listeners
+        attachSwipeListeners(row);
     });
+}
+
+// Swipe state tracking
+let currentSwiped = null;
+let swipeStartX = 0;
+let swipeStartY = 0;
+
+function attachSwipeListeners(rowElement) {
+    const touchStartHandler = (e) => {
+        // Close other open rows
+        if (currentSwiped && currentSwiped !== rowElement) {
+            currentSwiped.classList.remove("swiped");
+        }
+        swipeStartX = e.touches ? e.touches[0].clientX : e.clientX;
+        swipeStartY = e.touches ? e.touches[0].clientY : e.clientY;
+    };
+    
+    const touchMoveHandler = (e) => {
+        if (!e.touches && !e.clientX) return; // Not a touch or mouse event
+        const currentX = e.touches ? e.touches[0].clientX : e.clientX;
+        const currentY = e.touches ? e.touches[0].clientY : e.clientY;
+        const dx = swipeStartX - currentX;
+        const dy = Math.abs(swipeStartY - currentY);
+        
+        // Only prevent default on strong horizontal swipe
+        if (Math.abs(dx) > 8 && dy < 50) {
+            if (e.touches) {
+                e.preventDefault();
+            }
+        }
+    };
+    
+    const touchEndHandler = (e) => {
+        const currentX = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
+        const dx = swipeStartX - currentX;
+        
+        if (dx > 8) {
+            // Swiped left
+            rowElement.classList.add("swiped");
+            currentSwiped = rowElement;
+        } else if (dx < -8) {
+            // Swiped right
+            rowElement.classList.remove("swiped");
+            if (currentSwiped === rowElement) {
+                currentSwiped = null;
+            }
+        }
+    };
+    
+    // Touch events with passive listeners for scroll performance
+    rowElement.addEventListener("touchstart", touchStartHandler, { passive: true });
+    rowElement.addEventListener("touchmove", touchMoveHandler, { passive: false });
+    rowElement.addEventListener("touchend", touchEndHandler, { passive: true });
+    
+    // Mouse events for desktop testing
+    rowElement.addEventListener("mousedown", touchStartHandler);
+    rowElement.addEventListener("mousemove", touchMoveHandler);
+    rowElement.addEventListener("mouseup", touchEndHandler);
+}
+
+// Close swiped row on tap outside
+document.addEventListener("click", (e) => {
+    if (currentSwiped && !e.target.closest(".tx-row-wrap")) {
+        currentSwiped.classList.remove("swiped");
+        currentSwiped = null;
+    }
+});
+
+// Delete transaction and show undo toast
+let deletedTx = null;
+let deletedIndex = null;
+let undoTimer = null;
+
+function handleDeleteTransaction(tx, state) {
+    // Store for undo
+    deletedTx = tx;
+    deletedIndex = state.transactions.findIndex(t => t.datetime === tx.datetime);
+    
+    // Remove from state
+    state.transactions.splice(deletedIndex, 1);
+    saveState(state);
+    renderAll(loadState());
+    
+    // Mark swipe hint as seen
+    localStorage.setItem("swipeHintSeen", "1");
+    
+    // Show undo toast
+    showUndoToast();
+}
+
+function showUndoToast() {
+    const toast = document.getElementById("undoToast");
+    const undoBtn = toast.querySelector(".undo-btn");
+    
+    // Clear existing timer
+    if (undoTimer) {
+        clearTimeout(undoTimer);
+    }
+    
+    // Show toast
+    toast.classList.add("show");
+    
+    // Remove undo handler if exists
+    const oldBtn = undoBtn.cloneNode(true);
+    undoBtn.parentNode.replaceChild(oldBtn, undoBtn);
+    
+    // Add undo handler
+    oldBtn.addEventListener("click", handleUndo);
+    
+    // Auto-dismiss after 3500ms
+    undoTimer = setTimeout(() => {
+        toast.classList.remove("show");
+        undoTimer = null;
+    }, 3500);
+}
+
+function handleUndo() {
+    if (deletedTx === null || deletedIndex === null) return;
+    
+    const state = loadState();
+    state.transactions.splice(deletedIndex, 0, deletedTx);
+    saveState(state);
+    renderAll(loadState());
+    
+    const toast = document.getElementById("undoToast");
+    toast.classList.remove("show");
+    
+    if (undoTimer) {
+        clearTimeout(undoTimer);
+        undoTimer = null;
+    }
+    
+    deletedTx = null;
+    deletedIndex = null;
 }
 
 // ===============================
@@ -347,6 +524,21 @@ function formatTransactionDate(datetimeString) {
     });
     timePart = timePart.replace(/ /, "\u00A0").replace(/am|pm/i, match => match.toUpperCase());
     return `${datePart} • ${timePart}`;
+}
+
+function formatTransactionDateSplit(datetimeString) {
+    const date = new Date(datetimeString);
+    const datePart = date.toLocaleDateString("en-SG", {
+        day: "2-digit",
+        month: "short"
+    });
+    let timePart = date.toLocaleTimeString("en-SG", {
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true
+    });
+    timePart = timePart.replace(/ /, "\u00A0").replace(/am|pm/i, match => match.toUpperCase());
+    return { datePart, timePart };
 }
 
 // ===============================
