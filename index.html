@@ -64,10 +64,10 @@
             <h2>Transaction History</h2>
             <table id="transactionTable">
                 <thead>
-                    <tr>
-                        <th>Date/Time</th>
+                    <tr class="tx-header">
+                        <th>Date</th>
                         <th>Type</th>
-                        <th>Amount ($)</th>
+                        <th>$</th>
                         <th>Miles Earned</th>
                     </tr>
                 </thead>
@@ -78,9 +78,13 @@
         </div>
 
     </div> <!-- end of container -->
+    <div id="undoToast" class="undo-toast">
+        <span>Transaction removed</span>
+        <button class="undo-btn">Undo</button>
+    </div>
    
     <footer class="footer-note">
-    <p>tailwind v2.2.0 — Last updated: 3 Apr 2026</p>
+    <p> Ascent v2.3.0 — Last updated: 27 May 2026</p>
         <div style="margin-top:6px;">
             <button id="resetButton" class="reset-text" aria-label="Reset tracker">Reset</button>
         </div>
