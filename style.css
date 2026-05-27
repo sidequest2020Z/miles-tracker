@@ -387,11 +387,14 @@ button:disabled {
 .toggle-group {
     display: flex;
     justify-content: center;
+    align-items: center;
     margin-top: 18px;
     background: transparent;
     border: 1px solid var(--card-border);
     border-radius: var(--radius-lg);
     padding: 4px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .toggle-option {
@@ -404,6 +407,9 @@ button:disabled {
     font-weight: 600;
     color: var(--color-text-dim);
     transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .toggle-option input {
@@ -438,12 +444,40 @@ span {
     margin-top: 8px;
 }
 
+#transactionTable thead {
+    display: block;
+}
+
+#transactionTable thead .tx-header {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    gap: 12px;
+    background: var(--card-bg);
+}
+
+#transactionTable tbody {
+    display: block;
+}
+
 #transactionTable th {
-    padding: 10px 6px;
+    flex: 1;
+    min-width: 0;
+    padding: 0;
     text-align: left;
     color: var(--color-text-dim);
     font-weight: 600;
-    font-size: 14px;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    line-height: 1.2;
+}
+
+#transactionTable th:nth-child(3),
+#transactionTable th:nth-child(4) {
+    text-align: right;
+    flex: 0 0 auto;
+    min-width: 70px;
 }
 
 #transactionTable td {
@@ -577,6 +611,127 @@ button {
     touch-action: manipulation;
 }
 
+/* ==========================================================================
+   SWIPE-TO-DELETE FUNCTIONALITY
+   ========================================================================== */
+.tx-row-wrap {
+    overflow: hidden;
+    position: relative;
+    border-bottom: 0.5px solid #ECE7E0;
+}
+
+.tx-row {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    background: var(--card-bg);
+    position: relative;
+    z-index: 1;
+    transition: transform 0.25s cubic-bezier(.2,.9,.2,1);
+    user-select: none;
+    touch-action: pan-y;
+    gap: 12px;
+}
+
+.tx-row.swiped {
+    transform: translateX(-72px);
+}
+
+.tx-row-cell {
+    flex: 1;
+    min-width: 0;
+    padding: 0;
+    color: var(--color-text);
+    font-size: 14px;
+}
+
+.tx-row-cell.date-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.tx-row-cell.date-cell .date-value {
+    font-weight: 500;
+    font-size: 14px;
+    color: var(--color-text);
+}
+
+.tx-row-cell.date-cell .time-value {
+    font-size: 12px;
+    color: var(--color-text-dim);
+    line-height: 1.2;
+}
+
+.tx-row-cell.amount,
+.tx-row-cell.miles {
+    text-align: right;
+    flex: 0 0 auto;
+    min-width: 70px;
+}
+
+.delete-bg {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 72px;
+    background: #E24B4A;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.delete-bg svg {
+    width: 24px;
+    height: 24px;
+    stroke: #fff;
+}
+
+#undoToast {
+    position: fixed;
+    bottom: calc(28px + env(safe-area-inset-bottom));
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: #2C2C2A;
+    color: #fff;
+    font-size: 13px;
+    padding: 10px 16px;
+    border-radius: 22px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    transition: transform 0.3s cubic-bezier(.2,.9,.2,1), opacity 0.3s;
+    z-index: 999;
+    pointer-events: none;
+}
+
+#undoToast.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+    pointer-events: all;
+}
+
+.undo-btn {
+    background: transparent;
+    color: #FAC775;
+    border: none;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 0;
+    cursor: pointer;
+    margin: 0;
+    box-shadow: none;
+}
+
+.undo-btn:hover {
+    color: #FDD496;
+    transform: none;
+    box-shadow: none;
+}
 
 /* Progress Bar UX */
 .progress-section {
