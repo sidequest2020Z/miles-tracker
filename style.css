@@ -784,3 +784,335 @@ button {
     font-weight: 700;
     color: var(--color-accent);
 }
+
+/* ==========================================================================
+   CARD SETTINGS EDITOR
+   ========================================================================== */
+.card-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--gap-sm);
+}
+.icon-btn {
+    background: transparent;
+    border: none;
+    color: var(--color-text-dim);
+    cursor: pointer;
+    padding: 8px;
+    min-width: 40px;
+    min-height: 40px;
+    border-radius: var(--radius-sm);
+    font-size: 1rem;
+    line-height: 1;
+    transition: color var(--transition), background var(--transition);
+}
+.icon-btn:hover, .icon-btn:active {
+    color: var(--color-accent);
+    background: rgba(221, 80, 19, 0.08);
+}
+.settings-hint {
+    color: var(--color-text-dim);
+    font-size: 0.9rem;
+    margin: 4px 0 var(--gap-sm) 0;
+}
+.settings-card {
+    border: 1.5px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: var(--gap-sm);
+    margin-bottom: var(--gap-sm);
+    background: var(--color-page-bg);
+}
+.settings-card-head {
+    display: flex;
+    align-items: center;
+    gap: var(--gap-xs);
+    margin-bottom: var(--gap-xs);
+}
+.settings-input {
+    font-size: 1rem;
+    padding: 0.45em 0.6em;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--card-border);
+    background: #fff;
+    color: var(--color-text);
+    width: 100%;
+    min-width: 0;
+}
+.settings-input:focus {
+    outline: none;
+    border-color: var(--color-accent);
+}
+.settings-name {
+    font-weight: 600;
+    flex: 1 1 auto;
+}
+.settings-remove {
+    background: transparent;
+    border: 1.5px solid var(--card-border);
+    color: var(--color-text-dim);
+    border-radius: var(--radius-sm);
+    padding: 0.4em 0.7em;
+    font-size: 0.88rem;
+    cursor: pointer;
+    flex: 0 0 auto;
+    min-height: 36px;
+}
+.settings-remove:hover {
+    color: #c0392b;
+    border-color: #c0392b;
+}
+.settings-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--gap-xs);
+    margin-bottom: var(--gap-xs);
+}
+.settings-field {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    font-size: 0.8rem;
+    color: var(--color-text-dim);
+    min-width: 0;
+}
+.settings-rules {
+    margin-bottom: var(--gap-xs);
+}
+.settings-rule {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 52px 74px 32px;
+    gap: 6px;
+    align-items: center;
+    margin-bottom: 6px;
+}
+.settings-rule-head {
+    font-size: 0.78rem;
+    color: var(--color-text-dim);
+    margin-bottom: 2px;
+}
+.settings-remove-rule {
+    padding: 0.3em 0;
+    text-align: center;
+}
+.settings-add-rule, .btn-secondary {
+    background: transparent;
+    border: 1.5px dashed var(--card-border);
+    color: var(--color-text-dim);
+    border-radius: var(--radius-sm);
+    padding: 0.5em 0.9em;
+    font-size: 0.92rem;
+    cursor: pointer;
+    min-height: 40px;
+}
+.settings-add-rule:hover, .btn-secondary:hover {
+    color: var(--color-accent);
+    border-color: var(--color-accent);
+}
+.settings-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--gap-sm);
+    margin-top: var(--gap-sm);
+}
+.min-spend-note {
+    font-size: 0.88rem;
+    color: var(--color-text-dim);
+    margin-top: 4px;
+}
+@media (max-width: 600px) {
+    .settings-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Export CSV button (Summary header) */
+.export-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: transparent;
+    border: 1.5px solid var(--card-border);
+    color: var(--color-text-dim);
+    border-radius: var(--radius-sm);
+    padding: 0.45em 0.8em;
+    font-size: 0.88rem;
+    cursor: pointer;
+    min-height: 38px;
+    transition: color var(--transition), border-color var(--transition);
+}
+.export-btn:hover, .export-btn:active {
+    color: var(--color-accent);
+    border-color: var(--color-accent);
+}
+
+/* Overflow split recommendation + settings toggle */
+.rec-split-part {
+    font-size: 1.02rem;
+    margin-bottom: 0.15rem;
+}
+.rec-split-part .rec-split-amount,
+.rec-split-part .rec-split-card {
+    font-weight: 600;
+}
+.rec-split-part .rec-split-miles {
+    color: var(--color-accent);
+    font-weight: 600;
+    margin-left: 0.4em;
+}
+.settings-toggle {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-top: var(--gap-sm);
+    font-size: 0.92rem;
+    color: var(--color-text);
+    cursor: pointer;
+}
+.settings-toggle input {
+    margin-top: 3px;
+    min-width: 18px;
+    min-height: 18px;
+    accent-color: var(--color-accent);
+}
+
+/* ==========================================================================
+   v3 UI PASS — hierarchy, one-thumb entry, feedback
+   ========================================================================== */
+
+/* Transaction list header (replaces the old <thead>) */
+.tx-table {
+    width: 100%;
+    margin-top: 8px;
+}
+.tx-table .tx-header {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    gap: 12px;
+    background: var(--card-bg);
+}
+.tx-h {
+    flex: 1;
+    min-width: 0;
+    text-align: left;
+    color: var(--color-text-dim);
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    line-height: 1.2;
+}
+.tx-h.num {
+    /* Must mirror .tx-row-cell.amount/.miles so columns line up */
+    text-align: right;
+    flex: 0 0 auto;
+    min-width: 70px;
+    max-width: 70px;
+}
+
+/* Recommendation hero: the answer should be unmissable */
+@keyframes recPop {
+    from { opacity: 0; transform: translateY(8px) scale(0.985); }
+    to   { opacity: 1; transform: none; }
+}
+.recommendation-card {
+    animation: recPop 240ms cubic-bezier(.2,.9,.2,1);
+    border-left: 4px solid var(--color-accent);
+    background: linear-gradient(135deg, #fff8f3 0%, #fdeee2 100%);
+    box-shadow: 0 6px 20px rgba(221, 80, 19, 0.10);
+}
+.recommendation-card .rec-title {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--color-text-dim);
+    font-weight: 600;
+}
+.recommendation-card .rec-card {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--color-accent);
+    margin: 0.1rem 0 0.2rem 0;
+    line-height: 1.15;
+}
+.recommendation-card .rec-miles {
+    font-size: 1.05rem;
+}
+.rec-split-part .rec-split-card {
+    color: var(--color-accent);
+}
+
+/* One-thumb entry: big amount field, pill category toggles, tall Add */
+#purchaseAmount {
+    font-size: 22px !important;
+    font-weight: 600;
+    min-height: 52px;
+}
+.input-group .btn-primary {
+    min-height: 52px;
+}
+.toggle-group {
+    gap: 6px;
+    flex-wrap: nowrap;
+}
+.toggle-option {
+    min-width: 0; /* let labels shrink instead of wrapping the row */
+}
+.toggle-option input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+.toggle-option span {
+    display: block;
+    width: 100%;
+    text-align: center;
+    padding: 12px 6px;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--color-text-dim);
+    background: transparent;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: background var(--transition), color var(--transition);
+    cursor: pointer;
+}
+.toggle-option input:checked + span {
+    background: var(--color-accent);
+    border: none;
+    color: #fff;
+}
+
+/* Success feedback on add */
+#addToast {
+    position: fixed;
+    bottom: calc(28px + env(safe-area-inset-bottom));
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: #1f7a3d;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 12px 20px;
+    border-radius: 22px;
+    white-space: nowrap;
+    opacity: 0;
+    transition: transform 0.3s cubic-bezier(.2,.9,.2,1), opacity 0.3s;
+    z-index: 999;
+    pointer-events: none;
+}
+#addToast.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+}
+@keyframes milesPulse {
+    0% { transform: scale(1); }
+    35% { transform: scale(1.12); color: var(--color-accent); }
+    100% { transform: scale(1); }
+}
+.total-miles-display h3.pulse {
+    animation: milesPulse 500ms cubic-bezier(.2,.9,.2,1);
+}

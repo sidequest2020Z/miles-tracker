@@ -1,9 +1,11 @@
 <html lang="en">
 <head>
     <link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/1067/1067566.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Ascent">
+<meta name="theme-color" content="#F7F5F2">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Miles Tracker</title>
@@ -18,7 +20,15 @@
                 <!-- Add Purchase Card with Recommendation and Card Selector -->
 
         <div class="card">
-            <h2>Add Purchase</h2>
+            <div class="card-header-row">
+                <h2>Add Purchase</h2>
+                <button id="settingsButton" class="icon-btn" aria-label="Card settings" title="Card settings">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" stroke="currentColor" stroke-width="1.6"/>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.01a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.01a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.01a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </div>
             <div id="inlineRecommendation" class="recommendation-card" style="display:none; margin-bottom: 0.7rem;" aria-live="polite"></div>
             <div class="input-group">
                 <input type="text" id="purchaseAmount" class="input-full" placeholder="Enter amount" inputmode="decimal" pattern="[0-9]*" autocomplete="off" autocorrect="off" spellcheck="false" style="font-size:1.15rem;" >
@@ -29,15 +39,8 @@
                     <span>Add</span>
                 </button>
             </div>
-            <div class="toggle-group" style="margin-bottom: 0.7rem;">
-                <label class="toggle-option">
-                    <input type="radio" name="purchaseType" value="contactless" checked>
-                    <span>Contactless</span>
-                </label>
-                <label class="toggle-option">
-                    <input type="radio" name="purchaseType" value="online">
-                    <span>Online</span>
-                </label>
+            <div id="purchaseTypeGroup" class="toggle-group" style="margin-bottom: 0.7rem;">
+                <!-- Category toggles rendered from card config -->
             </div>
             <!-- Card Selector moved here -->
                         <div class="input-group" style="margin-bottom: 0;">
@@ -46,8 +49,34 @@
                         </div>
         </div>
 
+        <!-- Card Settings (hidden until gear tapped) -->
+        <div id="settingsPanel" class="card settings-panel" style="display:none;">
+            <div class="card-header-row">
+                <h2>Card Settings</h2>
+                <button id="settingsCloseButton" class="icon-btn" aria-label="Close settings">✕</button>
+            </div>
+            <p class="settings-hint">Caps are monthly SGD spend per pool. Rules with several categories share one pool.</p>
+            <div id="settingsCards"></div>
+            <label class="settings-toggle">
+                <input type="checkbox" id="overflowSplitToggle">
+                <span>Overflow split: when a purchase exceeds the best card's remaining cap, recommend splitting it across cards</span>
+            </label>
+            <div class="settings-actions">
+                <button id="settingsAddCardButton" class="btn-secondary" type="button">+ Add Card</button>
+                <button id="settingsSaveButton" class="btn-primary" type="button">Save</button>
+            </div>
+        </div>
+
         <div class="card" style="margin-bottom: 1.2rem;" >
-            <h2>Summary</h2>
+            <div class="card-header-row">
+                <h2>Summary</h2>
+                <button id="exportButton" class="export-btn" aria-label="Export monthly spend as CSV">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span>Export CSV</span>
+                </button>
+            </div>
             <div class="total-miles-display">
                 <p>Total Miles Earned</p>
                 <h3 id="totalMiles">0</h3>
@@ -62,19 +91,17 @@
              ========================= -->
         <div class="card">
             <h2>Transaction History</h2>
-            <table id="transactionTable">
-                <thead>
-                    <tr class="tx-header">
-                        <th>Date</th>
-                        <th>Type</th>
-                        <th>$</th>
-                        <th>Miles Earned</th>
-                    </tr>
-                </thead>
-                <tbody>
+            <div id="transactionTable" class="tx-table">
+                <div class="tx-header">
+                    <span class="tx-h">Date</span>
+                    <span class="tx-h">Type</span>
+                    <span class="tx-h num">$</span>
+                    <span class="tx-h num">Miles</span>
+                </div>
+                <div id="transactionList">
                     <!-- JS will fill this dynamically -->
-                </tbody>
-            </table>
+                </div>
+            </div>
         </div>
 
     </div> <!-- end of container -->
@@ -82,9 +109,10 @@
         <span>Transaction removed</span>
         <button class="undo-btn">Undo</button>
     </div>
-   
+    <div id="addToast" aria-live="polite"><span></span></div>
+
     <footer class="footer-note">
-    <p> Ascent v2.3.0 — Last updated: 27 May 2026</p>
+    <p> Ascent v3.0.0 — Last updated: 2 Jul 2026</p>
         <div style="margin-top:6px;">
             <button id="resetButton" class="reset-text" aria-label="Reset tracker">Reset</button>
         </div>
