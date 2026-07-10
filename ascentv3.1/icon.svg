@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
-  <!-- Full-bleed square, no rounded corners: iOS/Android apply their own mask. -->
-  <rect width="512" height="512" fill="#1f6f54"/>
-  <svg x="116" y="151" width="280" height="210" viewBox="0 0 32 24"
-       fill="none" stroke="#f6faf7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M2 19L11 12L17 16L29 4"/>
-    <circle cx="29" cy="4" r="3" fill="#f6faf7" stroke="none"/>
-  </svg>
-</svg>

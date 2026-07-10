@@ -1,7 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-label="Ascent">
-  <rect width="96" height="96" rx="24" fill="#1f6f54"/>
-  <g transform="translate(16,24) scale(2)" fill="none" stroke="#f6faf7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M2 19L11 12L17 16L29 4"/>
-    <circle cx="29" cy="4" r="3" fill="#f6faf7" stroke="none"/>
-  </g>
-</svg>
